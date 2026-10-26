@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
+import 'package:fl_clash/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../profiles.dart';
 
@@ -57,18 +57,23 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
     return groups;
   }
 
+  int _columnsFor(BuildContext context, double width) => getProfilesColumns(
+    width - 32.0,
+    spacing: widget.spacing,
+    minItemWidth: profileItemMinWidth.ap(context),
+  );
+
   @override
   Widget build(BuildContext context) {
     final groups = _getGroupedProfiles();
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return ListView.builder(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: context.contentTopPadding,
-        bottom: 16 + context.bottomInset,
+        left: 16.0,
+        right: 16.0,
+        top: context.contentTopPadding.toDouble(),
+        bottom: 16.0 + context.bottomInset.toDouble(),
       ),
       itemCount: groups.length,
       itemBuilder: (context, index) {
@@ -79,13 +84,12 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
         // 当前选中的活动节点是否位于该文件夹内
         final hasActiveProfile = folderProfiles.any((p) => p.id == widget.currentProfileId);
 
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 14),
-          elevation: 0,
-          color: colorScheme.surfaceVariant.withOpacity(0.3),
-          shape: RoundedRectangleBorder(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceVariant.withOpacity(0.35),
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
+            border: Border.all(
               color: hasActiveProfile
                   ? colorScheme.primary.withOpacity(0.55)
                   : colorScheme.outlineVariant.withOpacity(0.3),
@@ -107,10 +111,10 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      Icon(
-                        isExpanded ? Icons.folder_open_rounded : Icons.folder_rounded,
+                      GlyphIcon(
+                        isExpanded ? AppGlyphs.layers : AppGlyphs.appsList,
                         color: hasActiveProfile ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                        size: 22,
+                        size: 20,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -119,9 +123,10 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                             Flexible(
                               child: Text(
                                 folderName,
-                                style: theme.textTheme.titleMedium?.copyWith(
+                                style: TextStyle(
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: hasActiveProfile ? colorScheme.primary : null,
+                                  color: hasActiveProfile ? colorScheme.primary : colorScheme.onSurface,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -138,7 +143,8 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                               ),
                               child: Text(
                                 '${folderProfiles.length}',
-                                style: theme.textTheme.labelSmall?.copyWith(
+                                style: TextStyle(
+                                  fontSize: 12,
                                   color: hasActiveProfile
                                       ? colorScheme.onPrimaryContainer
                                       : colorScheme.onSurfaceVariant,
@@ -149,15 +155,11 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                           ],
                         ),
                       ),
-                      // 旋转折叠箭头
-                      AnimatedRotation(
-                        turns: isExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: colorScheme.onSurfaceVariant,
-                          size: 22,
-                        ),
+                      // 折叠指示箭头
+                      GlyphIcon(
+                        isExpanded ? AppGlyphs.chevronUp : AppGlyphs.chevronDown,
+                        color: colorScheme.onSurfaceVariant,
+                        size: 16,
                       ),
                     ],
                   ),
@@ -165,18 +167,12 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
               ),
 
               // --- 展开后的订阅卡片网格 ---
-              AnimatedCrossFade(
-                duration: const Duration(milliseconds: 200),
-                crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-                firstChild: Padding(
+              if (isExpanded)
+                Padding(
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                   child: WidthBuilder(
                     builder: (context, width) {
-                      final columns = getProfilesColumns(
-                        width - 24,
-                        spacing: widget.spacing,
-                        minItemWidth: profileItemMinWidth.ap(context),
-                      );
+                      final columns = _columnsFor(context, width);
 
                       return GridView.builder(
                         shrinkWrap: true,
@@ -207,8 +203,6 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                     },
                   ),
                 ),
-                secondChild: const SizedBox.shrink(),
-              ),
             ],
           ),
         );
