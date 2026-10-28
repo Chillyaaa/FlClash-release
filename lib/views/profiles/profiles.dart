@@ -288,12 +288,14 @@ class ProfileItem extends ConsumerWidget {
   final Profile profile;
   final int? groupValue;
   final void Function(int? value) onChanged;
+  final String? displayLabel;
 
   const ProfileItem({
     super.key,
     required this.profile,
     required this.groupValue,
     required this.onChanged,
+    this.displayLabel,
   });
 
   Future<void> _handleDeleteProfile(BuildContext context, WidgetRef ref) async {
@@ -547,6 +549,7 @@ class ProfileItem extends ConsumerWidget {
             profile: profile,
             expire: subscriptionInfo?.expireDate,
             subtitle: _subtitle(context),
+            displayLabel: displayLabel,
           ),
         ),
       ),
@@ -559,11 +562,13 @@ class _ProfileCardTitle extends StatelessWidget {
     required this.profile,
     required this.expire,
     required this.subtitle,
+    this.displayLabel,
   });
 
   final Profile profile;
   final DateTime? expire;
   final String subtitle;
+  final String? displayLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -572,7 +577,7 @@ class _ProfileCardTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ChipTitle(
-          title: profile.realLabel,
+          title: displayLabel ?? profile.realLabel,
           expire: expire,
           style: AppTextStyle.headline.of(context),
         ),

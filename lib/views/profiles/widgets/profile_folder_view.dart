@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../profiles.dart';
 
-/// 文件夹视图：支持将订阅按文件夹/分类组织，折叠/展开展示
+/// 文件夹视图：支持将订阅按文件夹分类组织，折叠/展开展示
 /// 支持：
 /// 1. 空白处右键新建文件夹
 /// 2. 文件夹头部右键重命名、解散文件夹
@@ -68,7 +68,7 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
       groups.putIfAbsent(folder, () => []).add(profile);
     }
 
-    // 3. 确保 "未分类" 总是存在并排在后面
+    // 3. 确保 "未分类" 如果存在则排在最后
     if (!groups.containsKey('未分类') && widget.profiles.any((p) => extractFolderName(p) == '未分类')) {
       groups.putIfAbsent('未分类', () => []);
     }
@@ -175,7 +175,7 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
         padding: EdgeInsets.only(
           left: 16.0,
           right: 16.0,
-          top: context.contentTopPadding.toDouble(),
+          top: (context.appBarInset + 8).toDouble(),
           bottom: 16.0 + context.bottomInset.toDouble(),
         ),
         itemCount: groups.length,
@@ -271,7 +271,7 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    // 订阅计数药丸
+                                    // 文件夹药丸徽章：显示数量
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                       decoration: BoxDecoration(
@@ -306,7 +306,7 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                       ),
                     ),
 
-                    // --- 展开后的订阅卡片网格（支持卡片拖拽） ---
+                    // --- 展开的订阅卡片（支持卡片拖拽） ---
                     if (isExpanded)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -315,7 +315,7 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                                 padding: const EdgeInsets.symmetric(vertical: 24),
                                 child: Center(
                                   child: Text(
-                                    '空文件夹（按住订阅卡片拖拽到此即可归类）',
+                                    '文件夹为空（按住订阅卡片拖拽至此即可归类）',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: colorScheme.onSurfaceVariant.withOpacity(0.65),
@@ -339,20 +339,18 @@ class _ProfileFolderViewState extends ConsumerState<ProfileFolderView> {
                                     itemCount: folderProfiles.length,
                                     itemBuilder: (context, pIndex) {
                                       final profile = folderProfiles[pIndex];
-                                      final displayProfile = profile.copyWith(
-                                        label: cleanProfileLabel(profile),
-                                      );
 
                                       final itemWidget = ProfileItem(
                                         key: ValueKey(profile.id),
-                                        profile: displayProfile,
+                                        profile: profile,
+                                        displayLabel: cleanProfileLabel(profile),
                                         groupValue: widget.currentProfileId,
                                         onChanged: (profileId) {
                                           ref.read(currentProfileIdProvider.notifier).value = profileId;
                                         },
                                       );
 
-                                      // 桌面端拖拽支持：长按或按住直接拖动卡片
+                                      // 拖拽支持：按住直接拖动卡片
                                       return Draggable<Profile>(
                                         data: profile,
                                         feedback: Material(
